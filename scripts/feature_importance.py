@@ -26,7 +26,7 @@ plt.rcParams.update(
 from common import cfg_list, cfg_path, ensure_parent, load_config
 
 
-RUN_MODELS_PATH = Path(__file__).with_name("03_run_models.py")
+RUN_MODELS_PATH = Path(__file__).with_name("run_models.py")
 spec = importlib.util.spec_from_file_location("run_models", RUN_MODELS_PATH)
 run_models = importlib.util.module_from_spec(spec)
 assert spec is not None and spec.loader is not None

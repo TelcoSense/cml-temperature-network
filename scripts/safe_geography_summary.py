@@ -20,7 +20,6 @@ def main() -> None:
     ap.add_argument("--selected-csv", default="outputs/selected_candidates.csv")
     ap.add_argument("--roof-csv", default="outputs/roof_selection.csv")
     ap.add_argument("--out-md", default="outputs/privacy_safe_geography_summary.md")
-    ap.add_argument("--out-tex", default="outputs/privacy_safe_geography_rows.tex")
     args = ap.parse_args()
 
     selected = pd.read_csv(args.selected_csv)
@@ -88,16 +87,7 @@ def main() -> None:
     ensure_parent(args.out_md)
     Path(args.out_md).write_text("\n".join(md) + "\n", encoding="utf-8")
 
-    tex_rows = []
-    for _, r in safe.iterrows():
-        dist = "--" if "distance_to_reference_m" not in safe.columns or pd.isna(r["distance_to_reference_m"]) else str(int(r["distance_to_reference_m"]))
-        n_ep = "--" if "n_endpoints" not in safe.columns else str(int(r["n_endpoints"]))
-        station = "--" if "reference_station" not in safe.columns or pd.isna(r["reference_station"]) else str(r["reference_station"])
-        tex_rows.append(f"{r['roof_label']} & {n_ep} & {station} & {dist} \\\\")
-    ensure_parent(args.out_tex)
-    Path(args.out_tex).write_text("\n".join(tex_rows) + "\n", encoding="utf-8")
     print(f"Wrote {args.out_md}")
-    print(f"Wrote {args.out_tex}")
 
 
 if __name__ == "__main__":

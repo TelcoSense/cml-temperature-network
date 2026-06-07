@@ -30,9 +30,6 @@ function Normalize-Step([string]$Value) {
         "3" { return "03" }
         "models" { return "03" }
         "model" { return "03" }
-        "04" { return "04" }
-        "4" { return "04" }
-        "report" { return "04" }
         "05" { return "05" }
         "5" { return "05" }
         "plots" { return "05" }
@@ -48,7 +45,7 @@ function Normalize-Step([string]$Value) {
 
 function Resolve-Steps([string[]]$Raw) {
     if ($null -eq $Raw -or $Raw.Count -eq 0 -or [string]::IsNullOrWhiteSpace(($Raw -join ""))) {
-        return @("01", "02", "03", "04", "05")
+        return @("01", "02", "03", "05")
     }
     $seen = [System.Collections.Generic.HashSet[string]]::new()
     $resolved = [System.Collections.Generic.List[string]]::new()
@@ -69,8 +66,7 @@ function Get-StepName([string]$StepId) {
         "01" { return "select_roofs" }
         "02" { return "make_ml_dataset" }
         "03" { return "run_models" }
-        "04" { return "write_report" }
-        "05" { return "make_plots_and_tables" }
+        "05" { return "make_plots" }
         "06" { return "add_per_endpoint_baseline" }
         default { throw ("Unknown step id: {0}" -f $StepId) }
     }
@@ -78,12 +74,11 @@ function Get-StepName([string]$StepId) {
 
 function Get-StepScript([string]$StepId) {
     switch ($StepId) {
-        "01" { return "scripts/01_select_roofs.py" }
-        "02" { return "scripts/02_make_ml_dataset.py" }
-        "03" { return "scripts/03_run_models.py" }
-        "04" { return "scripts/04_write_report.py" }
-        "05" { return "scripts/05_make_plots_and_tables.py" }
-        "06" { return "scripts/06_add_per_endpoint_baseline.py" }
+        "01" { return "scripts/select_roofs.py" }
+        "02" { return "scripts/make_ml_dataset.py" }
+        "03" { return "scripts/run_models.py" }
+        "05" { return "scripts/make_plots.py" }
+        "06" { return "scripts/add_per_endpoint_baseline.py" }
         default { throw ("Unknown step id: {0}" -f $StepId) }
     }
 }

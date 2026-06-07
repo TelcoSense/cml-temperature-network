@@ -368,7 +368,7 @@ def make_timeseries_figure(preds: pd.DataFrame, out_pdf: str) -> None:
     plt.close(fig)
 
 
-def write_latex_tables(
+def write_summary_csvs(
     metrics: pd.DataFrame,
     out_summary: str,
     out_months: str,
@@ -386,36 +386,17 @@ def write_latex_tables(
             r2=("r2", "mean"),
         )
     )
-    rows = []
-    for protocol in ["last_month", "leave_one_month", "leave_one_roof"]:
-        for model in REPORTED_MODELS:
-            row = summary[(summary["protocol"] == protocol) & (summary["model"] == model)]
-            if row.empty:
-                continue
-            r = row.iloc[0]
-            rows.append(
-                f"{protocol.replace('_', '-')} & {model_label(model)} & {int(r['folds'])} & "
-                f"{r['mae']:.2f} & {r['rmse']:.2f} & {r['bias']:.2f} & {r['r2']:.2f} \\\\"
-            )
+    summary = summary[summary["model"].isin(REPORTED_MODELS)].copy()
     ensure_parent(out_summary)
-    Path(out_summary).write_text("\n".join(rows) + "\n", encoding="utf-8")
+    summary["model_label"] = summary["model"].map(model_label)
+    summary.to_csv(out_summary, index=False)
 
     month = primary[primary["protocol"] == "leave_one_month"].copy()
     month = month[month["model"].isin(REPORTED_MODELS)]
     month["month"] = month["fold"].str.replace("test_", "", regex=False)
     pivot = month.pivot_table(index="month", columns="model", values="mae_c", aggfunc="first")
-    rows = []
-    for month_key, r in pivot.sort_index().iterrows():
-        rows.append(
-            f"{month_key} & {r.get('constant_offset', np.nan):.2f} & "
-            f"{r.get('per_endpoint_offset', np.nan):.2f} & "
-            f"{r.get('clock_only_ridge', np.nan):.2f} & "
-            f"{r.get('svr_linear', np.nan):.2f} & "
-            f"{r.get('hist_gradient_boosting', np.nan):.2f} & "
-            f"{r.get('xgboost', np.nan):.2f} \\\\"
-        )
     ensure_parent(out_months)
-    Path(out_months).write_text("\n".join(rows) + "\n", encoding="utf-8")
+    pivot.sort_index().reset_index().to_csv(out_months, index=False)
 
     if "scope" in metrics.columns:
         scope_summary = (
@@ -423,19 +404,11 @@ def write_latex_tables(
             .groupby(["scope", "model"], as_index=False)
             .agg(folds=("fold", "nunique"), mae=("mae_c", "mean"), rmse=("rmse_c", "mean"), r2=("r2", "mean"))
         )
-        rows = []
-        for scope in sorted(scope_summary["scope"].unique(), key=lambda s: (s != "all_technologies", s)):
-            for model in REPORTED_MODELS:
-                row = scope_summary[(scope_summary["scope"] == scope) & (scope_summary["model"] == model)]
-                if row.empty:
-                    continue
-                r = row.iloc[0]
-                label = "all" if scope == "all_technologies" else scope_label(scope, aliases).replace(" only", "")
-                rows.append(
-                    f"{label} & {model_label(model)} & {int(r['folds'])} & {r['mae']:.2f} & {r['rmse']:.2f} & {r['r2']:.2f} \\\\"
-                )
+        scope_summary = scope_summary[scope_summary["model"].isin(REPORTED_MODELS)].copy()
+        scope_summary["scope_label"] = scope_summary["scope"].map(lambda s: scope_label(str(s), aliases))
+        scope_summary["model_label"] = scope_summary["model"].map(model_label)
         ensure_parent(out_scope)
-        Path(out_scope).write_text("\n".join(rows) + "\n", encoding="utf-8")
+        scope_summary.to_csv(out_scope, index=False)
 
 
 def main() -> None:
@@ -446,7 +419,9 @@ def main() -> None:
     cfg = load_config(args.config)
     metrics = pd.read_csv(cfg_path(cfg, "paths", "metrics_csv"))
     preds = pd.read_csv(cfg_path(cfg, "paths", "predictions_csv"))
-    aliases = technology_aliases_from_frame(preds[preds.get("scope", "") == "all_technologies"])
+    aliases = {}
+    if "scope" in preds.columns:
+        aliases = technology_aliases_from_frame(preds[preds["scope"] == "all_technologies"])
     if not aliases:
         aliases = technology_aliases_from_frame(preds)
 
@@ -458,16 +433,16 @@ def main() -> None:
     make_mae_figure(metrics, str(plot_dir / "ml_validation_mae.pdf"))
     make_scope_comparison_figure(metrics, str(plot_dir / "ml_scope_comparison.pdf"), aliases)
     make_timeseries_figure(preds, str(plot_dir / "ml_last_month_timeseries.pdf"))
-    write_latex_tables(
+    write_summary_csvs(
         metrics,
-        "outputs/ml_table_summary_rows.tex",
-        "outputs/ml_table_leave_one_month_rows.tex",
-        "outputs/ml_table_scope_rows.tex",
+        "outputs/ml_summary_by_protocol.csv",
+        "outputs/ml_leave_one_month_mae.csv",
+        "outputs/ml_scope_summary.csv",
         aliases,
     )
 
     print("Wrote ML vector figures to", plot_dir)
-    print("Wrote LaTeX table rows to outputs/ml_table_*.tex")
+    print("Wrote ML summary CSV files to outputs/")
 
 
 if __name__ == "__main__":

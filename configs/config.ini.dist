@@ -15,7 +15,6 @@ roof_selection_csv = outputs\roof_selection.csv
 ml_dataset_csv = outputs\ml_dataset.csv
 metrics_csv = outputs\model_metrics.csv
 predictions_csv = outputs\model_predictions.csv
-report_txt = reports\ml_revision_report.txt
 
 [selection]
 max_roofs = 5
@@ -51,7 +50,7 @@ max_rbf_train_samples_per_fold = 1500
 max_xgb_train_samples_per_fold = 50000
 inner_cv_splits = 2
 
-# Small grids keep the experiment paper-scale and reproducible.
+# Small grids keep the experiment compact and reproducible.
 svr_c_values = 1
 svr_gamma_values = scale
 

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-import math
 import zipfile
-from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import numpy as np
@@ -132,7 +130,6 @@ def main() -> None:
         help="Path to a field reset CSV with a temp column. Not included in the public repository.",
     )
     ap.add_argument("--out-csv", default="outputs/cold_start_fit_summary.csv")
-    ap.add_argument("--out-tex", default="outputs/cold_start_fit_rows.tex")
     args = ap.parse_args()
 
     df = read_first_sheet_xlsx(args.excel)
@@ -149,19 +146,7 @@ def main() -> None:
     ensure_parent(args.out_csv)
     out.to_csv(args.out_csv, index=False)
 
-    tex_rows = []
-    for r in rows:
-        g = "--" if math.isnan(r["g_th_w_k"]) else f"{r['g_th_w_k']:.2f}"
-        c = "--" if math.isnan(r["c_th_j_k"]) else f"{r['c_th_j_k']:.0f}"
-        tex_rows.append(
-            f"{r['series']} & {r['t0_c']:.1f} & {r['t_inf_c']:.1f} & "
-            f"{r['tau_min']:.1f} $\\pm$ {r['tau_sigma_min']:.1f} & "
-            f"{r['r2']:.3f} & {g} & {c} \\\\"
-        )
-    ensure_parent(args.out_tex)
-    Path(args.out_tex).write_text("\n".join(tex_rows) + "\n", encoding="utf-8")
     print(f"Wrote {args.out_csv}")
-    print(f"Wrote {args.out_tex}")
 
 
 if __name__ == "__main__":
