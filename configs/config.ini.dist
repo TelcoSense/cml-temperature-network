@@ -1,0 +1,84 @@
+[paths]
+# Candidate metadata. This file is not included in the public repository because
+# exact CML locations and station identifiers may be sensitive. Required columns:
+# cml_id, lon_cml, lat_cml. Optional columns include technology, distance_m, and
+# anonymized station identifiers.
+candidates_csv = data/private/candidate_metadata.csv
+
+# Monthly merged 10-minute CSV files. These data are not included here. Expected
+# public/anonymized columns are documented in README.md.
+raw_dataset_dir = data/private/monthly_10min
+raw_dataset_pattern = merged_10m_*.csv
+
+selected_candidates_csv = outputs\selected_candidates.csv
+roof_selection_csv = outputs\roof_selection.csv
+ml_dataset_csv = outputs\ml_dataset.csv
+metrics_csv = outputs\model_metrics.csv
+predictions_csv = outputs\model_predictions.csv
+report_txt = reports\ml_revision_report.txt
+
+[selection]
+max_roofs = 5
+roof_radius_m = 20
+min_samples_per_cml = 1000
+prefer_roofs_with_many_cmls = true
+
+[dataset]
+start_utc = 2025-01-01T00:00:00Z
+stop_utc = 2026-01-01T00:00:00Z
+target_col = t_ref
+unit_temp_col = temp_unit
+drop_missing = true
+max_abs_temp_c = 80
+
+[features]
+# temp_unit is intentionally always included for the physical/bias models.
+include_clock_features = true
+include_geometry_features = true
+include_power_features = true
+include_categorical_ids = true
+
+[validation]
+# Options: last_month, leave_one_month, leave_one_roof
+protocols = last_month,leave_one_month,leave_one_roof
+min_train_samples = 1000
+min_test_samples = 100
+
+[models]
+random_state = 42
+max_train_samples_per_fold = 50000
+max_rbf_train_samples_per_fold = 1500
+max_xgb_train_samples_per_fold = 50000
+inner_cv_splits = 2
+
+# Small grids keep the experiment paper-scale and reproducible.
+svr_c_values = 1
+svr_gamma_values = scale
+
+# Controlled nonlinear comparators; both use the same blocked validation.
+run_spline_ridge = false
+spline_n_knots = 5
+spline_degree = 3
+run_hist_gradient_boosting = true
+hgb_max_iter = 250
+hgb_learning_rate = 0.05
+hgb_max_leaf_nodes = 15
+hgb_min_samples_leaf = 50
+hgb_l2_regularization = 0.1
+run_xgboost = true
+xgb_n_estimators = 350
+xgb_learning_rate = 0.04
+xgb_max_depth = 4
+xgb_min_child_weight = 10
+xgb_subsample = 0.85
+xgb_colsample_bytree = 0.85
+xgb_reg_lambda = 5.0
+xgb_reg_alpha = 0.1
+xgb_tree_method = hist
+xgb_n_jobs = 1
+
+[experiments]
+run_all_technologies = true
+run_single_technology = true
+# Use auto to select the technology with the most samples after filtering.
+single_technology = auto

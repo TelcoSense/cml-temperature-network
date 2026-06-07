@@ -1,0 +1,24 @@
+# Local/private configuration
+configs/config.ini
+
+# Private or anonymized data should be managed outside Git unless explicitly approved.
+data/private/
+*.csv
+*.parquet
+*.pkl
+*.pickle
+*.xlsx
+
+# Generated analysis products
+outputs/
+plots/
+reports/
+logs/
+
+# Python/cache files
+__pycache__/
+*.py[cod]
+
+# OS/editor files
+.DS_Store
+Thumbs.db
