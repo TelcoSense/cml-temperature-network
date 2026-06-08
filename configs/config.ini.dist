@@ -15,6 +15,8 @@ roof_selection_csv = outputs\roof_selection.csv
 ml_dataset_csv = outputs\ml_dataset.csv
 metrics_csv = outputs\model_metrics.csv
 predictions_csv = outputs\model_predictions.csv
+report_txt = reports\ml_revision_report.txt
+qc_summary_txt = outputs/ml_dataset_qc_summary.txt
 
 [selection]
 max_roofs = 5
@@ -29,6 +31,18 @@ target_col = t_ref
 unit_temp_col = temp_unit
 drop_missing = true
 max_abs_temp_c = 80
+
+[quality_control]
+# Set to apply when raw_dataset_dir contains an uptime column. Set to prefiltered
+# only when the upstream exporter has already excluded at least this many minutes
+# after device restart before writing the monthly CSVs.
+post_reset_filter_mode = prefiltered
+post_reset_exclude_minutes = 20
+uptime_col = uptime
+uptime_group_col = cml_id
+time_col = time_utc
+uptime_scale_to_seconds = 1
+sample_interval_minutes = 10
 
 [features]
 # temp_unit is intentionally always included for the physical/bias models.
@@ -50,7 +64,7 @@ max_rbf_train_samples_per_fold = 1500
 max_xgb_train_samples_per_fold = 50000
 inner_cv_splits = 2
 
-# Small grids keep the experiment compact and reproducible.
+# Small grids keep the experiment paper-scale and reproducible.
 svr_c_values = 1
 svr_gamma_values = scale
 
