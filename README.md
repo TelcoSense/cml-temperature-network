@@ -27,7 +27,7 @@ Coordinates are needed only for the optional roof-selection step and should not 
 committed.
 
 Post-reset warm-up samples should be excluded before model fitting. If the raw
-monthly files contain an `uptime` column, `02_make_ml_dataset.py` can apply this
+monthly files contain an `uptime` column, `make_ml_dataset.py` can apply this
 filter directly using `[quality_control] post_reset_filter_mode = apply`. The
 manuscript-facing 2025 exports were already filtered upstream for the first
 20 minutes after restart, and uptime was not retained in the exported feature
@@ -52,7 +52,7 @@ Selected steps:
 ## Pipeline Steps
 
 - `01_select_roofs.py` selects up to five roof clusters from a candidate metadata CSV.
-- `02_make_ml_dataset.py` filters one year of exported monthly data and adds derived features.
+- `make_ml_dataset.py` filters one year of exported monthly data and adds derived features.
 - `03_run_models.py` evaluates the manuscript-facing set of constant offset, clock-only ridge, linear SVR, histogram gradient boosting, and XGBoost; additional diagnostic model variants can remain configured internally when needed. A spline-ridge experiment is available in the model runner but disabled by default because it is less stable in blocked spatial transfer.
 - `04_write_report.py` writes a text report with methods, tables, and wording guidance.
 - `05_make_plots_and_tables.py` writes manuscript vector figures to `plots/` and LaTeX table rows.
