@@ -7,7 +7,7 @@ telemetry, exact link locations, IP addresses, station names, or real technology
 
 The project deliberately tests the strongest reviewer objections:
 
-- the reported ML comparison includes constant-offset and clock-only baselines plus linear SVM, HistGBT, and XGBoost,
+- the reported ML comparison includes constant-offset, per-endpoint-offset and clock-only baselines plus linear SVR, HistGBT, and XGBoost,
 - train/test splits are temporal blocks and optional leave-one-roof-out splits,
 - models are simple enough to justify in a feasibility paper,
 - the report phrases performance as agreement with a remote reference station, not
@@ -46,21 +46,19 @@ matrix; for that case use `post_reset_filter_mode = prefiltered`.
 Selected steps:
 
 ```powershell
-.\run_pipeline.ps1 -Config configs/config.ini -Steps select,dataset,models,report
+.\run_pipeline.ps1 -Config configs/config.ini -Steps select,dataset,models,plots
 ```
 
 ## Pipeline Steps
 
-- `01_select_roofs.py` selects up to five roof clusters from a candidate metadata CSV.
+- `select_roofs.py` selects up to five roof clusters from a candidate metadata CSV.
 - `make_ml_dataset.py` filters one year of exported monthly data and adds derived features.
-- `03_run_models.py` evaluates the manuscript-facing set of constant offset, clock-only ridge, linear SVR, histogram gradient boosting, and XGBoost; additional diagnostic model variants can remain configured internally when needed. A spline-ridge experiment is available in the model runner but disabled by default because it is less stable in blocked spatial transfer.
-- `04_write_report.py` writes a text report with methods, tables, and wording guidance.
-- `05_make_plots_and_tables.py` writes manuscript vector figures to `plots/` and LaTeX table rows.
-- `06_add_per_endpoint_baseline.py` backfills the per-endpoint constant-offset baseline into existing metrics and prediction CSVs without re-training the supervised models.
-- `07_feature_importance.py` computes held-out permutation importance for the selected boosted-tree model.
-- `08_fit_coldstarts.py` fits first-order warm-up curves from local cold-start files. The data files are not distributed.
-- `09_safe_geography_summary.py` writes a privacy-safe roof/station summary from local metadata.
-- `10_review_diagnostics.py` writes aggregate diagnostic rows used in the review response.
+- `run_models.py` evaluates the manuscript-facing set of constant offset, clock-only ridge, linear SVR, histogram gradient boosting, and XGBoost; additional diagnostic model variants can remain configured internally when needed. A spline-ridge experiment is available in the model runner but disabled by default because it is less stable in blocked spatial transfer.
+- `make_plots.py` writes manuscript vector figures to `plots/` and summary CSV tables.
+- `add_per_endpoint_baseline.py` backfills the per-endpoint constant-offset baseline into existing metrics and prediction CSVs without re-training the supervised models.
+- `feature_importance.py` computes held-out permutation importance for the selected boosted-tree model.
+- `fit_coldstarts.py` fits first-order warm-up curves from local cold-start files. The data files are not distributed.
+- `safe_geography_summary.py` writes a privacy-safe roof/station summary from local metadata.
 
 The default strategy is conservative: use one year, five roofs, no random shuffled split,
 and report all numbers by validation protocol. Kernel SVR is trained on a fixed,
@@ -90,3 +88,13 @@ The following files are intentionally ignored and should not be pushed:
 
 Use `configs/config.ini.dist` as a template and keep real paths, raw telemetry,
 coordinates, IP addresses, physical locations, and real technology names outside Git.
+
+## Review corrections
+
+All three baselines use the complete training fold; the 50,000-record cap applies to the main telemetry regressors. The cold-start fitter retains the original one-minute positions when readings are missing. Density panels have independent colour scales and no shared count colour bar. Temperature notation and SVR labels match the revised manuscript; trsl is described generically as a signal-level field. These corrections do not constitute a new training run or a recalculation of published scores.
+
+Synthetic regression checks (no private data required):
+
+```text
+python -m unittest discover -s tests -v
+```

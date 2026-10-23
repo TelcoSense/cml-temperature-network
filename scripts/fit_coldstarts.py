@@ -83,8 +83,13 @@ def warmup(t_sec, t_inf, t0, tau_sec):
 
 
 def fit_series(name: str, temp: pd.Series, power_w: float | None):
-    y = pd.to_numeric(temp, errors="coerce").dropna().to_numpy(dtype=float)
+    # Rows are nominal one-minute slots. Missing readings must not compress time.
+    y = pd.to_numeric(temp, errors="coerce").to_numpy(dtype=float)
     t = np.arange(len(y), dtype=float) * 60.0
+    finite = np.isfinite(y)
+    t, y = t[finite], y[finite]
+    if len(y) < 4:
+        raise ValueError(f"{name}: at least four finite readings are required")
     p0 = [float(np.nanmax(y)), float(y[0]), 300.0]
     bounds = ([-50.0, -50.0, 1.0], [150.0, 150.0, 7200.0])
     popt, pcov = curve_fit(warmup, t, y, p0=p0, bounds=bounds, maxfev=50000)

@@ -422,7 +422,8 @@ def main() -> None:
                     flush=True,
                 )
                 fit_train = train
-                if name not in {"constant_offset", "clock_only_ridge"}:
+                # All baselines use the full training fold, matching add_per_endpoint_baseline.py.
+                if name not in {"constant_offset", "per_endpoint_offset", "clock_only_ridge"}:
                     if name == "svr_rbf":
                         model_max_fit = max_rbf_fit
                     elif name == "xgboost":

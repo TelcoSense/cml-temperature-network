@@ -30,7 +30,7 @@ MODEL_LABELS = {
     "constant_offset": "Constant offset",
     "per_endpoint_offset": "Per-endpoint offset",
     "clock_only_ridge": "Clock-only ridge",
-    "svr_linear": "Linear SVM",
+    "svr_linear": "Linear SVR",
     "hist_gradient_boosting": "HistGBT",
     "xgboost": "XGBoost",
 }
@@ -158,7 +158,8 @@ def make_scatter_figure(
 
     sampled = common_prediction_sample(preds, protocol, fold, available, n=25000, seed=seed)
     hb = None
-    for ax, model in zip(axes, available):
+    for panel, (ax, model) in enumerate(zip(axes, available)):
+        ax.set_title(f"({chr(97 + panel)}) {MODEL_LABELS.get(model, model)}")
         part = sampled[sampled["model"] == model]
         hb = ax.hexbin(
             part["y_true"],
@@ -177,9 +178,9 @@ def make_scatter_figure(
 
     axes[0].set_ylabel("Estimated temperature ($^{\\circ}$C)")
     fig.subplots_adjust(left=0.07, right=0.89, bottom=0.17, top=0.95, wspace=0.12)
-    if hb is not None:
-        cax = fig.add_axes([0.915, 0.17, 0.014, 0.78])
-        fig.colorbar(hb, cax=cax, label="Samples per bin")
+    # Each panel has independent bins and normalization. A common count colour
+    # bar would misrepresent the last panel's scale as applying to every panel.
+    # Describe independent colour scales in the figure caption.
 
     ensure_parent(out_pdf)
     fig.savefig(out_pdf)
