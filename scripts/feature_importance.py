@@ -49,7 +49,7 @@ def choose_split(splits, protocol: str):
 
 def feature_label(name: str) -> str:
     labels = {
-        "temp_unit": "$t_{\\mathrm{MU}}$",
+        "temp_unit": "$T_{\\mathrm{MU}}$",
         "doy_sin": "seasonal sine",
         "doy_cos": "seasonal cosine",
         "hour_sin": "diurnal sine",
@@ -57,7 +57,7 @@ def feature_label(name: str) -> str:
         "sun": "daylight",
         "azimuth": "azimuth",
         "altitude": "altitude",
-        "trsl": "transmit level",
+        "trsl": "signal level",
         "rsl": "receive level",
         "tsl": "transmit power",
         "technology": "technology",
